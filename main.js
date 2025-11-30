@@ -18,7 +18,7 @@ const tabs = new Map();
 let activeTabId = null;
 
 function ensureDataDirectory() {
-  console.log('📁 Création des répertoires...');
+  console.log('Création des répertoires...');
   if (!fs.existsSync(CONFIG.DATA_DIR)) {
     fs.mkdirSync(CONFIG.DATA_DIR, { recursive: true });
   }
@@ -28,11 +28,11 @@ function ensureDataDirectory() {
   if (!fs.existsSync(CONFIG.BOOKMARKS_FILE)) {
     fs.writeFileSync(CONFIG.BOOKMARKS_FILE, JSON.stringify([], null, 2));
   }
-  console.log('✅ Répertoires créés');
+  console.log('Répertoires créés');
 }
 
 function createWindow() {
-  console.log('🚀 Création fenêtre...');
+  console.log('Création fenêtre...');
   initConfig();
   ensureDataDirectory();
   
@@ -63,7 +63,7 @@ function createWindow() {
 }
 
 ipcMain.handle('create-tab', (event, tabId, url) => {
-  console.log('📑 Création tab:', tabId, url);
+  console.log('Création tab:', tabId, url);
   
   const view = new BrowserView({
     webPreferences: {
@@ -82,7 +82,7 @@ ipcMain.handle('create-tab', (event, tabId, url) => {
   
   const targetUrl = url || CONFIG.DEFAULT_URL;
   view.webContents.loadURL(targetUrl).catch(err => {
-    console.error('❌ Erreur chargement:', err);
+    console.error('Erreur chargement:', err);
   });
   
   view.webContents.on('did-start-loading', () => {
@@ -110,7 +110,7 @@ ipcMain.handle('create-tab', (event, tabId, url) => {
 });
 
 ipcMain.handle('switch-tab', (event, tabId) => {
-  console.log('🔄 Switch tab:', tabId);
+  console.log('Switch tab:', tabId);
   const view = tabs.get(tabId);
   if (!view) return { success: false };
   
@@ -132,11 +132,11 @@ ipcMain.handle('close-tab', (event, tabId) => {
 });
 
 ipcMain.handle('navigate-tab', (event, tabId, url) => {
-  console.log('🧭 Navigation:', tabId, url);
+  console.log('Navigation:', tabId, url);
   const view = tabs.get(tabId);
   if (view) {
     view.webContents.loadURL(url).catch(err => {
-      console.error('❌ Erreur navigation:', err);
+      console.error('Erreur navigation:', err);
     });
   }
   return { success: true };
@@ -175,7 +175,7 @@ ipcMain.handle('tab-stop', (event, tabId) => {
 });
 
 ipcMain.handle('tab-zoom', (event, tabId, level) => {
-  console.log('🔍 Zoom:', tabId, level);
+  console.log('Zoom:', tabId, level);
   const view = tabs.get(tabId);
   if (view) {
     view.webContents.setZoomLevel(level);

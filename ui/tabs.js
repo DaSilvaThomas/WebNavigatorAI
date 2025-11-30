@@ -1,9 +1,9 @@
 class TabManager {
   constructor() {
-    console.log('🎬 TabManager init');
+    console.log('TabManager init');
     
     if (!window.electronAPI) {
-      console.error('❌ electronAPI manquante !');
+      console.error('electronAPI manquante !');
       return;
     }
     
@@ -18,7 +18,7 @@ class TabManager {
   
   init() {
     this.newTabBtn.addEventListener('click', () => {
-      console.log('➕ Nouveau tab');
+      console.log('Nouveau tab');
       this.createTab();
     });
     
@@ -62,7 +62,7 @@ class TabManager {
   }
   
   async createTab(url = null) {
-    console.log('🆕 Création tab');
+    console.log('Création tab');
     this.tabCounter++;
     const tabId = `tab-${this.tabCounter}`;
     
@@ -146,5 +146,5 @@ class TabManager {
   }
 }
 
-console.log('📝 Création tabManager');
+console.log('Création tabManager');
 const tabManager = new TabManager();

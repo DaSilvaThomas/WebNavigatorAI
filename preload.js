@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 
-console.log('🔧 PRELOAD: Démarrage');
+console.log('PRELOAD: Démarrage');
 
 function getUserDataPath() {
   const os = require('os');
@@ -32,7 +32,7 @@ const CONFIG = {
   REQUEST_TIMEOUT: 15000
 };
 
-console.log('⚙️ PRELOAD: Config OK');
+console.log('PRELOAD: Config OK');
 
 contextBridge.exposeInMainWorld('electronAPI', {
   createTab: (tabId, url) => ipcRenderer.invoke('create-tab', tabId, url),
@@ -169,4 +169,4 @@ contextBridge.exposeInMainWorld('electronAPI', {
   })
 });
 
-console.log('✅ PRELOAD: API exposée');
+console.log('PRELOAD: API exposée');

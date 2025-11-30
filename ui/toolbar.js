@@ -1,6 +1,6 @@
 let currentZoomLevel = 0;
 
-console.log('🔧 Toolbar init');
+console.log('Toolbar init');
 
 document.getElementById('btn-back').addEventListener('click', () => {
   const tabId = tabManager.getActiveTabId();
@@ -61,14 +61,14 @@ function updateSecurityIndicator(url) {
 }
 
 document.getElementById('btn-zoom-in').addEventListener('click', () => {
-  console.log('🔍 Zoom +');
+  console.log('Zoom +');
   currentZoomLevel += 0.5;
   if (currentZoomLevel > 3) currentZoomLevel = 3;
   applyZoom();
 });
 
 document.getElementById('btn-zoom-out').addEventListener('click', () => {
-  console.log('🔍 Zoom -');
+  console.log('Zoom -');
   currentZoomLevel -= 0.5;
   if (currentZoomLevel < -3) currentZoomLevel = -3;
   applyZoom();
@@ -80,7 +80,7 @@ function applyZoom() {
     window.electronAPI.tabZoom(tabId, currentZoomLevel);
     const percentage = Math.round(Math.pow(1.2, currentZoomLevel) * 100);
     document.getElementById('zoom-level').textContent = percentage + '%';
-    console.log('✅ Zoom:', percentage + '%');
+    console.log('Zoom:', percentage + '%');
   }
 }
 
