@@ -1,0 +1,8 @@
+# Dépendances Node
+node_modules/
+
+# Build & distribution (Electron packager / builder)
+dist/
+build/
+release/
+out/

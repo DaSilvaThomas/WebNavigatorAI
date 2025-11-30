@@ -1,0 +1,35 @@
+{
+  "name": "web-navigator-ai",
+  "version": "1.0.0",
+  "description": "Navigateur web desktop avec résumé IA",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --x64"
+  },
+  "keywords": ["electron", "browser", "ai"],
+  "author": "WebNavigatorAI",
+  "license": "MIT",
+  "dependencies": {
+    "electron": "^28.0.0",
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.webnavigator.ai",
+    "productName": "WebNavigatorAI",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": ["nsis"],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
