@@ -1,76 +1,61 @@
 function addToHistory(entry) {
-  if (!entry.url || !entry.title) return;
+  if (!entry.url || entry.url === 'about:blank') return;
   
-  window.electronAPI.addHistory({
-    url: entry.url,
-    title: entry.title
-  });
+  // Vérifier que l'API est disponible
+  if (!window.electronAPI || !window.electronAPI.addHistory) {
+    console.error('API historique non disponible');
+    return;
+  }
+  
+  window.electronAPI.addHistory(entry);
+  console.log('Ajouté à l\'historique:', entry.url);
 }
 
 function showHistoryPanel() {
   const panel = document.getElementById('history-panel');
+  const list = document.getElementById('history-list');
+  
   panel.classList.remove('hidden');
   
   const history = window.electronAPI.getHistory();
-  const listDiv = document.getElementById('history-list');
-  listDiv.innerHTML = '';
   
   if (history.length === 0) {
-    listDiv.innerHTML = '<p style="text-align: center; color: #9ca3af; padding: 20px;">Aucun historique</p>';
+    list.innerHTML = '<p style="text-align: center; color: #9ca3af; padding: 20px;">Aucun historique</p>';
     return;
   }
   
-  history.forEach(item => {
-    const itemDiv = document.createElement('div');
-    itemDiv.className = 'panel-item';
-    
+  list.innerHTML = history.map(item => {
     const date = new Date(item.timestamp);
-    const timeStr = formatRelativeTime(date);
+    const timeStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     
-    itemDiv.innerHTML = `
-      <div class="panel-item-content">
-        <div class="panel-item-title">${escapeHtml(item.title)}</div>
-        <div class="panel-item-url">${escapeHtml(item.url)}</div>
-        <div class="panel-item-time">${timeStr}</div>
+    return `
+      <div class="panel-item" data-url="${item.url}">
+        <div class="panel-item-content">
+          <div class="panel-item-title">${item.title || 'Sans titre'}</div>
+          <div class="panel-item-url">${item.url}</div>
+          <div class="panel-item-time">${timeStr}</div>
+        </div>
       </div>
     `;
-    
-    itemDiv.addEventListener('click', () => {
-      const tabId = tabManager.getActiveTabId();
-      if (tabId) {
-        window.electronAPI.navigateTab(tabId, item.url);
+  }).join('');
+  
+  // Ajouter les événements de clic sur les éléments
+  list.querySelectorAll('.panel-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const url = item.getAttribute('data-url');
+      if (url) {
+        // Créer un nouvel onglet avec cette URL
+        tabManager.createTab(url);
+        // Fermer le panel
         panel.classList.add('hidden');
       }
     });
-    
-    listDiv.appendChild(itemDiv);
   });
 }
 
 document.getElementById('btn-clear-history').addEventListener('click', () => {
-  if (confirm('Effacer tout l\'historique ?')) {
+  if (confirm('Voulez-vous vraiment effacer tout l\'historique ?')) {
     window.electronAPI.clearHistory();
     showHistoryPanel();
   }
 });
-
-function formatRelativeTime(date) {
-  const now = new Date();
-  const diffMs = now - date;
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-  
-  if (diffMins < 1) return 'À l\'instant';
-  if (diffMins < 60) return `Il y a ${diffMins} min`;
-  if (diffHours < 24) return `Il y a ${diffHours}h`;
-  if (diffDays < 7) return `Il y a ${diffDays}j`;
-  
-  return date.toLocaleDateString('fr-FR');
-}
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}

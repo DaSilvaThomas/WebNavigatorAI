@@ -6,7 +6,8 @@ document.getElementById('btn-ai').addEventListener('click', async () => {
   if (!tabId) return;
   
   try {
-    const selectedText = await window.electronAPI.getSelectedText(tabId);
+    // Récupérer le texte sélectionné directement depuis le webview
+    const selectedText = await tabManager.getSelectedText();
     
     if (!selectedText || selectedText.trim().length < 50) {
       showAiPopup();

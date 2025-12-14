@@ -1,4 +1,4 @@
-const { app, BrowserWindow, BrowserView, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -14,8 +14,6 @@ function initConfig() {
 }
 
 let mainWindow;
-const tabs = new Map();
-let activeTabId = null;
 
 function ensureDataDirectory() {
   console.log('Création des répertoires...');
@@ -48,148 +46,39 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
-      webviewTag: false
+      webviewTag: true // CHANGEMENT CRUCIAL : activer webview
     }
   });
 
   mainWindow.loadFile(path.join(__dirname, 'ui', 'main_window.html'));
-  mainWindow.webContents.openDevTools();
+  
+  // AJOUT: Configurer la CSP pour autoriser les appels à l'API Apyhub
+  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [
+          "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; " +
+          "connect-src 'self' https://api.apyhub.com https://*.google.com; " +
+          "img-src 'self' data: https:; " +
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+          "style-src 'self' 'unsafe-inline';"
+        ]
+      }
+    });
+  });
+  
+  // mainWindow.webContents.openDevTools();
   
   mainWindow.on('closed', () => {
-    tabs.forEach(view => view.destroy());
-    tabs.clear();
     mainWindow = null;
   });
 }
 
-ipcMain.handle('create-tab', (event, tabId, url) => {
-  console.log('Création tab:', tabId, url);
-  
-  const view = new BrowserView({
-    webPreferences: {
-      contextIsolation: true,
-      nodeIntegration: false,
-      javascript: true
-    }
-  });
-  
-  tabs.set(tabId, view);
-  mainWindow.addBrowserView(view);
-  
-  const bounds = mainWindow.getContentBounds();
-  view.setBounds({ x: 0, y: 120, width: bounds.width, height: bounds.height - 120 });
-  view.setAutoResize({ width: true, height: true });
-  
-  const targetUrl = url || CONFIG.DEFAULT_URL;
-  view.webContents.loadURL(targetUrl).catch(err => {
-    console.error('Erreur chargement:', err);
-  });
-  
-  view.webContents.on('did-start-loading', () => {
-    event.sender.send('tab-loading', tabId, true);
-  });
-  
-  view.webContents.on('did-stop-loading', () => {
-    event.sender.send('tab-loading', tabId, false);
-    event.sender.send('tab-title', tabId, view.webContents.getTitle());
-  });
-  
-  view.webContents.on('did-navigate', (e, url) => {
-    event.sender.send('tab-url', tabId, url);
-  });
-  
-  view.webContents.on('did-navigate-in-page', (e, url) => {
-    event.sender.send('tab-url', tabId, url);
-  });
-  
-  view.webContents.on('page-title-updated', (e, title) => {
-    event.sender.send('tab-title', tabId, title);
-  });
-  
-  return { success: true, tabId };
-});
-
-ipcMain.handle('switch-tab', (event, tabId) => {
-  console.log('Switch tab:', tabId);
-  const view = tabs.get(tabId);
-  if (!view) return { success: false };
-  
-  const bounds = mainWindow.getContentBounds();
-  view.setBounds({ x: 0, y: 120, width: bounds.width, height: bounds.height - 120 });
-  mainWindow.setTopBrowserView(view);
-  activeTabId = tabId;
-  return { success: true };
-});
-
-ipcMain.handle('close-tab', (event, tabId) => {
-  const view = tabs.get(tabId);
-  if (view) {
-    mainWindow.removeBrowserView(view);
-    view.destroy();
-    tabs.delete(tabId);
-  }
-  return { success: true };
-});
-
-ipcMain.handle('navigate-tab', (event, tabId, url) => {
-  console.log('Navigation:', tabId, url);
-  const view = tabs.get(tabId);
-  if (view) {
-    view.webContents.loadURL(url).catch(err => {
-      console.error('Erreur navigation:', err);
-    });
-  }
-  return { success: true };
-});
-
-ipcMain.handle('tab-back', (event, tabId) => {
-  const view = tabs.get(tabId);
-  if (view && view.webContents.canGoBack()) {
-    view.webContents.goBack();
-  }
-  return { success: true };
-});
-
-ipcMain.handle('tab-forward', (event, tabId) => {
-  const view = tabs.get(tabId);
-  if (view && view.webContents.canGoForward()) {
-    view.webContents.goForward();
-  }
-  return { success: true };
-});
-
-ipcMain.handle('tab-refresh', (event, tabId) => {
-  const view = tabs.get(tabId);
-  if (view) {
-    view.webContents.reload();
-  }
-  return { success: true };
-});
-
-ipcMain.handle('tab-stop', (event, tabId) => {
-  const view = tabs.get(tabId);
-  if (view) {
-    view.webContents.stop();
-  }
-  return { success: true };
-});
-
-ipcMain.handle('tab-zoom', (event, tabId, level) => {
-  console.log('Zoom:', tabId, level);
-  const view = tabs.get(tabId);
-  if (view) {
-    view.webContents.setZoomLevel(level);
-  }
-  return { success: true };
-});
-
-ipcMain.handle('get-selected-text', async (event, tabId) => {
-  const view = tabs.get(tabId);
-  if (view) {
-    const text = await view.webContents.executeJavaScript('window.getSelection().toString()');
-    return text;
-  }
-  return '';
+// Les handlers IPC sont maintenant simplifiés car la gestion des webviews
+// se fait directement dans le renderer process
+ipcMain.handle('get-default-url', () => {
+  return CONFIG.DEFAULT_URL;
 });
 
 app.whenReady().then(createWindow);

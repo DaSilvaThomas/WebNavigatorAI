@@ -3,33 +3,28 @@ let currentZoomLevel = 0;
 console.log('Toolbar init');
 
 document.getElementById('btn-back').addEventListener('click', () => {
-  const tabId = tabManager.getActiveTabId();
-  if (tabId) window.electronAPI.tabBack(tabId);
+  tabManager.goBack();
 });
 
 document.getElementById('btn-forward').addEventListener('click', () => {
-  const tabId = tabManager.getActiveTabId();
-  if (tabId) window.electronAPI.tabForward(tabId);
+  tabManager.goForward();
 });
 
 document.getElementById('btn-refresh').addEventListener('click', () => {
-  const tabId = tabManager.getActiveTabId();
-  if (tabId) window.electronAPI.tabRefresh(tabId);
+  tabManager.refresh();
 });
 
 document.getElementById('btn-stop').addEventListener('click', () => {
-  const tabId = tabManager.getActiveTabId();
-  if (tabId) window.electronAPI.tabStop(tabId);
+  tabManager.stop();
 });
 
 const urlBar = document.getElementById('url-bar');
 urlBar.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {
     const input = urlBar.value.trim();
-    const tabId = tabManager.getActiveTabId();
-    if (tabId && input) {
+    if (input) {
       const url = formatUrl(input);
-      window.electronAPI.navigateTab(tabId, url);
+      tabManager.navigateActiveTab(url);
     }
   }
 });
@@ -75,13 +70,8 @@ document.getElementById('btn-zoom-out').addEventListener('click', () => {
 });
 
 function applyZoom() {
-  const tabId = tabManager.getActiveTabId();
-  if (tabId) {
-    window.electronAPI.tabZoom(tabId, currentZoomLevel);
-    const percentage = Math.round(Math.pow(1.2, currentZoomLevel) * 100);
-    document.getElementById('zoom-level').textContent = percentage + '%';
-    console.log('Zoom:', percentage + '%');
-  }
+  tabManager.setZoom(currentZoomLevel);
+  console.log('Zoom:', document.getElementById('zoom-level').textContent);
 }
 
 document.getElementById('btn-bookmark').addEventListener('click', () => {

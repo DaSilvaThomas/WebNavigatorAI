@@ -24,31 +24,19 @@ const CONFIG = {
   DATA_DIR: path.join(userDataPath, 'data'),
   HISTORY_FILE: path.join(userDataPath, 'data', 'history.json'),
   BOOKMARKS_FILE: path.join(userDataPath, 'data', 'bookmarks.json'),
-  AI_API_URL: 'https://api-inference.huggingface.co/models/facebook/bart-large-cnn',
-  AI_API_KEY: '',
+  AI_API_URL: 'https://api.apyhub.com/ai/summarize-text',
+  AI_API_KEY: 'APY04yQjQCle4BiHGatNS8uMW3Oo2JEzWKxyTFWVpMdw3GmqEJa9qqO2LojQ0Oa4QYcTZH1BwGUi0A',
   SEARCH_ENGINE: 'https://www.google.com/search?q=',
   DEFAULT_URL: 'https://www.google.com',
   MAX_HISTORY_ITEMS: 1000,
-  REQUEST_TIMEOUT: 15000
+  REQUEST_TIMEOUT: 30000
 };
 
 console.log('PRELOAD: Config OK');
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  createTab: (tabId, url) => ipcRenderer.invoke('create-tab', tabId, url),
-  switchTab: (tabId) => ipcRenderer.invoke('switch-tab', tabId),
-  closeTab: (tabId) => ipcRenderer.invoke('close-tab', tabId),
-  navigateTab: (tabId, url) => ipcRenderer.invoke('navigate-tab', tabId, url),
-  tabBack: (tabId) => ipcRenderer.invoke('tab-back', tabId),
-  tabForward: (tabId) => ipcRenderer.invoke('tab-forward', tabId),
-  tabRefresh: (tabId) => ipcRenderer.invoke('tab-refresh', tabId),
-  tabStop: (tabId) => ipcRenderer.invoke('tab-stop', tabId),
-  tabZoom: (tabId, level) => ipcRenderer.invoke('tab-zoom', tabId, level),
-  getSelectedText: (tabId) => ipcRenderer.invoke('get-selected-text', tabId),
-  
-  onTabLoading: (callback) => ipcRenderer.on('tab-loading', (e, tabId, loading) => callback(tabId, loading)),
-  onTabUrl: (callback) => ipcRenderer.on('tab-url', (e, tabId, url) => callback(tabId, url)),
-  onTabTitle: (callback) => ipcRenderer.on('tab-title', (e, tabId, title) => callback(tabId, title)),
+  // NOTE: Les méthodes IPC pour les tabs ne sont plus nécessaires
+  // car les webviews sont gérés directement dans le renderer
   
   getHistory: () => {
     try {
@@ -61,7 +49,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   addHistory: (entry) => {
     try {
-      let history = JSON.parse(fs.readFileSync(CONFIG.HISTORY_FILE, 'utf8'));
+      console.log('📝 Ajout historique:', entry);
+      console.log('📂 Chemin:', CONFIG.HISTORY_FILE);
+      
+      let history = [];
+      
+      // Lire le fichier existant
+      if (fs.existsSync(CONFIG.HISTORY_FILE)) {
+        const data = fs.readFileSync(CONFIG.HISTORY_FILE, 'utf8');
+        history = JSON.parse(data);
+      }
+      
       history.unshift({
         url: entry.url,
         title: entry.title,
@@ -73,9 +71,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
       }
       
       fs.writeFileSync(CONFIG.HISTORY_FILE, JSON.stringify(history, null, 2));
+      console.log('✅ Historique sauvegardé:', history.length, 'entrées');
       return true;
     } catch (err) {
-      console.error('Erreur historique:', err);
+      console.error('❌ Erreur historique:', err);
       return false;
     }
   },
@@ -100,10 +99,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   addBookmark: (bookmark) => {
     try {
-      const bookmarks = JSON.parse(fs.readFileSync(CONFIG.BOOKMARKS_FILE, 'utf8'));
+      console.log('⭐ Ajout favori:', bookmark);
+      console.log('📂 Chemin:', CONFIG.BOOKMARKS_FILE);
+      
+      let bookmarks = [];
+      
+      // Lire le fichier existant
+      if (fs.existsSync(CONFIG.BOOKMARKS_FILE)) {
+        const data = fs.readFileSync(CONFIG.BOOKMARKS_FILE, 'utf8');
+        bookmarks = JSON.parse(data);
+      }
       
       const exists = bookmarks.find(b => b.url === bookmark.url);
-      if (exists) return false;
+      if (exists) {
+        console.log('⚠️ Favori déjà existant');
+        return false;
+      }
       
       bookmarks.push({
         url: bookmark.url,
@@ -112,9 +123,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
       });
       
       fs.writeFileSync(CONFIG.BOOKMARKS_FILE, JSON.stringify(bookmarks, null, 2));
+      console.log('✅ Favori sauvegardé:', bookmarks.length, 'entrées');
       return true;
     } catch (err) {
-      console.error('Erreur bookmark:', err);
+      console.error('❌ Erreur bookmark:', err);
       return false;
     }
   },
@@ -136,30 +148,67 @@ contextBridge.exposeInMainWorld('electronAPI', {
         return { success: false, error: 'Texte trop court (min 50 caractères)' };
       }
       
-      const cleanText = text.trim().substring(0, 1024);
+      console.log('🤖 Envoi à Apyhub AI...');
       
+      // Préparer le payload selon le format Apyhub
+      const payload = {
+        text: text.trim(),
+        output_language: 'fr'
+      };
+      
+      // Effectuer la requête POST vers Apyhub
       const response = await axios.post(
         CONFIG.AI_API_URL,
-        { inputs: cleanText, parameters: { max_length: 130, min_length: 30 } },
+        payload,
         {
-          headers: CONFIG.AI_API_KEY ? { 'Authorization': `Bearer ${CONFIG.AI_API_KEY}` } : {},
+          headers: {
+            'apy-token': CONFIG.AI_API_KEY,
+            'Content-Type': 'application/json'
+          },
           timeout: CONFIG.REQUEST_TIMEOUT
         }
       );
       
-      if (response.data && response.data[0] && response.data[0].summary_text) {
-        return { success: true, summary: response.data[0].summary_text };
+      console.log('📥 Réponse Apyhub:', response.data);
+      
+      // Extraire le résumé selon le format de réponse Apyhub
+      if (response.data && response.data.data && response.data.data.summary) {
+        return { 
+          success: true, 
+          summary: response.data.data.summary 
+        };
       }
       
-      return { success: false, error: 'Réponse API invalide' };
+      // Si le format est différent, afficher la réponse complète pour debug
+      console.error('Format de réponse inattendu:', response.data);
+      return { 
+        success: false, 
+        error: 'Format de réponse inattendu de l\'API' 
+      };
+      
     } catch (err) {
-      console.error('Erreur résumé:', err.message);
+      console.error('❌ Erreur résumé Apyhub:', err.message);
       
-      if (err.response && err.response.status === 503) {
-        return { success: false, error: 'Modèle en cours de chargement, réessayez dans 20s' };
+      // Gestion des erreurs spécifiques
+      if (err.response) {
+        console.error('Détails erreur:', err.response.status, err.response.data);
+        return { 
+          success: false, 
+          error: `Erreur API (${err.response.status}): ${JSON.stringify(err.response.data)}` 
+        };
       }
       
-      return { success: false, error: err.message || 'Erreur inconnue' };
+      if (err.code === 'ECONNABORTED') {
+        return { 
+          success: false, 
+          error: 'Temps d\'attente dépassé (30s)' 
+        };
+      }
+      
+      return { 
+        success: false, 
+        error: err.message || 'Erreur inconnue' 
+      };
     }
   },
   

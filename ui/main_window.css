@@ -26,6 +26,8 @@ body {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 100; /* MODIFIÉ: ajout du z-index pour garder la toolbar au-dessus */
 }
 
 .nav-buttons {
@@ -145,6 +147,8 @@ body {
   border-bottom: 1px solid #d1d5db;
   overflow-x: auto;
   overflow-y: hidden;
+  position: relative;
+  z-index: 100; /* MODIFIÉ: ajout du z-index pour garder les tabs au-dessus */
 }
 
 .tabs-bar::-webkit-scrollbar {
@@ -240,10 +244,34 @@ body {
   transform: scale(1.05);
 }
 
-/* Content Area */
+/* Content Area - MODIFIÉ pour webview */
 .content-area {
   flex: 1;
   background: #f5f5f5;
+  position: relative; /* AJOUTÉ */
+  width: 100%; /* AJOUTÉ */
+  height: 100%; /* AJOUTÉ - Force la hauteur */
+  overflow: hidden; /* AJOUTÉ */
+}
+
+/* Style pour les webviews - NOUVEAU */
+webview {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  border: none !important;
+  min-height: 100% !important; /* AJOUTÉ - Force la hauteur minimale */
+  display: flex !important; /* AJOUTÉ - Pour que le shadow DOM fonctionne */
+  flex-direction: column !important; /* AJOUTÉ */
+  pointer-events: auto !important; /* AJOUTÉ - Assure que les clics fonctionnent */
+}
+
+/* Quand un webview est caché, désactiver les interactions */
+webview[style*="display: none"] {
+  pointer-events: none !important;
+  z-index: -1 !important;
 }
 
 /* AI Popup */
@@ -258,7 +286,7 @@ body {
   background: white;
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
+  z-index: 1000; /* IMPORTANT: au-dessus des webviews */
   overflow: hidden;
   animation: popupFadeIn 0.3s ease;
 }
@@ -399,7 +427,7 @@ body {
   height: 100vh;
   background: white;
   box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
-  z-index: 999;
+  z-index: 1000; /* IMPORTANT: au-dessus des webviews */
   display: flex;
   flex-direction: column;
   animation: slideIn 0.3s ease;
@@ -548,4 +576,9 @@ body {
 
 .panel-list::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
+}
+
+/* Notification - z-index le plus élevé */
+.notification {
+  z-index: 10000; /* IMPORTANT: au-dessus de tout */
 }

@@ -137,3 +137,9 @@ DEFAULT_URL: 'https://votre-site.com'
 - API sécurisée via preload script
 - Validation des URLs
 - Protection contre XSS
+
+
+
+
+
+C:\Users\totod\AppData\Roaming\web-navigator-ai\data
