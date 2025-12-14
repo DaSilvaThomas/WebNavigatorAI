@@ -25,6 +25,9 @@ Navigateur web desktop moderne avec résumé IA intégré, développé avec Elec
 1. Cloner ou extraire le projet
 
 ```bash
+git clone https://github.com/DaSilvaThomas/WebNavigatorAI.git
+```
+```bash
 cd WebNavigatorAI
 ```
 
@@ -44,7 +47,6 @@ npm start
 
 ## Particularités du stockage des données
 
-* Le dossier `data/` **à la racine du projet a été supprimé**.
 * L'historique et les favoris sont stockés dans un dossier spécifique selon le système d'exploitation :
 
   * **Windows** : `C:\Users\VotreNom\AppData\Roaming\web-navigator-ai\data`
@@ -57,25 +59,24 @@ npm start
 
 * Utilisation de **<webview>** au lieu de BrowserView pour gérer les onglets.
 * API de résumé texte remplacée par **ApyHub**.
-* Suppression des instructions de build Windows.
 
 ## Structure du projet
 
 ```
 WebNavigatorAI/
-├── main.js              # Point d'entrée Electron + config
-├── preload.js           # API sécurisée Node.js
-├── package.json         # Dépendances et scripts
+├── main.js                   # Point d'entrée Electron + config
+├── preload.js                # API sécurisée Node.js
+├── package.json              # Dépendances et scripts
 ├── package-lock.json
 ├── README.md
 ├── node_modules/
 ├── ui/
 │   ├── app_init.js
-│   ├── main_window.html # Interface principale
-│   ├── main_window.css  # Styles
-│   ├── tabs.js          # Gestion des onglets
-│   ├── toolbar.js       # Barre d'outils
-│   └── popup_summary.js # Popup résumé IA
+│   ├── main_window.html      # Interface principale
+│   ├── main_window.css       # Styles
+│   ├── tabs.js               # Gestion des onglets
+│   ├── toolbar.js            # Barre d'outils
+│   └── popup_summary.js      # Popup résumé IA
 ├── core/
 │   ├── navigation.js         # Utilitaires navigation
 │   ├── history_manager.js    # Gestion historique
@@ -113,28 +114,6 @@ WebNavigatorAI/
 
 * Utilisez les boutons **+** et **-** pour ajuster le zoom
 * Le niveau de zoom s'affiche au centre
-
-## Développement
-
-### Scripts disponibles
-
-```bash
-npm start        # Lancer en mode développement
-```
-
-### Personnalisation
-
-**Moteur de recherche** - Modifiez `preload.js`:
-
-```javascript
-SEARCH_ENGINE: 'https://duckduckgo.com/?q='
-```
-
-**URL par défaut** - Modifiez `main.js` et `preload.js`:
-
-```javascript
-DEFAULT_URL: 'https://votre-site.com'
-```
 
 ## Sécurité
 
