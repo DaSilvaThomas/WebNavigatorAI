@@ -77,10 +77,10 @@ WebNavigatorAI/
 │   ├── tabs.js               # Gestion des onglets
 │   ├── toolbar.js            # Barre d'outils
 │   └── popup_summary.js      # Popup résumé IA
-├── core/
-│   ├── navigation.js         # Utilitaires navigation
-│   ├── history_manager.js    # Gestion historique
-│   └── bookmarks_manager.js  # Gestion favoris
+└── core/
+    ├── navigation.js         # Utilitaires navigation
+    ├── history_manager.js    # Gestion historique
+    └── bookmarks_manager.js  # Gestion favoris
 ```
 
 ## Utilisation
