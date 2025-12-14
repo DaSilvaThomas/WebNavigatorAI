@@ -59,9 +59,13 @@ class TabManager {
       height: 100%;
       display: none;
     `;
+
+    // Ajouter le preload absolu
+    const preloadPath = window.electronAPI.getWebviewPreloadPath();
+    webview.setAttribute('preload', preloadPath);
     
     // Ajouter les attributs de sécurité
-    webview.setAttribute('disablewebsecurity', 'false');
+    // webview.setAttribute('disablewebsecurity', 'false');
     
     const tabData = {
       id: tabId,
